@@ -1,0 +1,71 @@
+{
+  "name": "skn-keyboard-driver",
+  "version": "1.0.6",
+  "description": "SKN 键盘桌面驱动（基于官方 SKN Launcher 引擎）",
+  "main": "main.js",
+  "author": "SKN Driver",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "smoke": "electron . --smoke-test",
+    "dist": "electron-builder --win",
+    "dist:portable": "electron-builder --win portable",
+    "release-assets": "node build/release-assets.mjs",
+    "publish-release": "node build/publish-release.mjs"
+  },
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "com.skn.keyboard.driver",
+    "productName": "SKN键盘驱动",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "splash.html",
+      "offline.html",
+      "assets/**/*"
+    ],
+    "asar": true,
+    "compression": "normal",
+    "win": {
+      "icon": "build/icon.png",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "SKN键盘驱动",
+      "installerLanguages": [
+        "zh_CN",
+        "en_US"
+      ],
+      "artifactName": "SKN键盘驱动-安装版-${version}.${ext}"
+    },
+    "portable": {
+      "artifactName": "SKN键盘驱动-便携版-${version}.${ext}"
+    }
+  }
+}

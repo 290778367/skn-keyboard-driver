@@ -1,0 +1,17 @@
+# 依赖与构建产物（都不进仓库）
+node_modules/
+dist/
+release/
+*.log
+
+# electron-builder 的本地缓存
+.electron-builder-cache/
+builder-debug.yml
+
+# 运行时数据（exe 旁的 data 文件夹）
+data/
+
+# 系统垃圾
+Thumbs.db
+Desktop.ini
+.DS_Store

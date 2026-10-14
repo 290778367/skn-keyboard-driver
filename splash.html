@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'">
+  <title>SKN 键盘驱动</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; overflow: hidden; }
+    body {
+      font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+      background: radial-gradient(1200px 600px at 50% -10%, #1c2340 0%, #12141f 55%, #0d0f18 100%);
+      color: #e6e9f2;
+      display: flex; align-items: center; justify-content: center;
+    }
+    /* 自定义标题栏（无边框窗口） */
+    .tb {
+      position: fixed; top: 0; left: 0; right: 0; height: 38px; z-index: 99;
+      display: flex; align-items: center; justify-content: flex-end;
+      background: rgba(15,18,32,.7);
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      -webkit-app-region: drag; user-select: none;
+    }
+    .tb .tb-btn {
+      -webkit-app-region: no-drag;
+      width: 46px; height: 100%; border: 0; background: transparent;
+      color: #9aa2b8; font-size: 13px; cursor: pointer; outline: 0;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .12s, color .12s;
+    }
+    .tb .tb-btn:hover { background: rgba(255,255,255,.10); color: #e6e9f2; }
+    .tb .tb-close:hover { background: #e5484d; color: #fff; }
+    .wrap { text-align: center; }
+    .logo {
+      width: 92px; height: 92px; margin: 0 auto 26px;
+      border-radius: 24px;
+      background: linear-gradient(145deg, #2c3560 0%, #1a2040 100%);
+      border: 1px solid rgba(255,255,255,.14);
+      box-shadow: 0 12px 40px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.12);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .logo svg { width: 52px; height: 52px; }
+    h1 { font-size: 22px; font-weight: 700; letter-spacing: 1px; margin-bottom: 8px; }
+    .sub { font-size: 12.5px; color: #8b93ab; margin-bottom: 40px; letter-spacing: .4px; }
+    .spinner {
+      width: 34px; height: 34px; margin: 0 auto;
+      border: 3px solid rgba(110,140,255,.18);
+      border-top-color: #6e8cff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .version { position: fixed; bottom: 22px; left: 0; right: 0; text-align: center; font-size: 11.5px; color: #5c6479; letter-spacing: .5px; }
+  </style>
+</head>
+<body>
+  <div class="tb">
+    <button class="tb-btn" data-act="minimize" title="最小化">&#x2013;</button>
+    <button class="tb-btn" data-act="maximize" title="最大化">&#x25A1;</button>
+    <button class="tb-btn tb-close" data-act="close" title="关闭">&#x2715;</button>
+  </div>
+  <div class="wrap">
+    <div class="logo">
+      <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="6" y="12" width="36" height="24" rx="3" stroke="#6e8cff" stroke-width="2.4"/>
+        <path d="M6 18h36" stroke="#6e8cff" stroke-width="2.4"/>
+        <path d="M12 24h3M19 24h3M26 24h3M33 24h3M12 29h3M19 29h3M26 29h3M33 29h3" stroke="#8fa3e8" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <h1>SKN 键盘驱动</h1>
+    <div class="sub">基于官方 SKN Launcher 引擎 · 正在加载驱动组件</div>
+    <div class="spinner"></div>
+  </div>
+  <div class="version" id="ver">v1.0.6</div>
+  <script>
+    (function () {
+      var btns = document.querySelectorAll('.tb .tb-btn');
+      btns.forEach(function (b) {
+        b.addEventListener('click', function () {
+          if (window.sknDriver && window.sknDriver.windowControl) window.sknDriver.windowControl(b.getAttribute('data-act'));
+        });
+      });
+      if (window.sknDriver && window.sknDriver.onMaximized) {
+        window.sknDriver.onMaximized(function (m) {
+          var b = document.querySelector('.tb-btn[data-act="maximize"]');
+          if (b) b.innerHTML = m ? '&#x274F;' : '&#x25A1;';
+        });
+      }
+    })();
+  </script>
+</body>
+</html>

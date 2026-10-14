@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'">
+  <title>SKN 键盘驱动 - 无法连接</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+      background: radial-gradient(1000px 500px at 50% -10%, #1c2340 0%, #14161f 55%, #0d0f18 100%);
+      color: #e5e7eb;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .card {
+      width: 540px; max-width: 92vw; padding: 48px 44px;
+      background: rgba(255,255,255,.045); border: 1px solid rgba(255,255,255,.1);
+      border-radius: 20px; text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,.35);
+      backdrop-filter: blur(10px);
+    }
+    .logo {
+      width: 72px; height: 72px; margin: 0 auto 22px;
+      border-radius: 20px;
+      background: linear-gradient(145deg, #2c3560 0%, #1a2040 100%);
+      border: 1px solid rgba(255,255,255,.14);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.12);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .logo svg { width: 40px; height: 40px; }
+    h1 { font-size: 21px; font-weight: 700; margin-bottom: 10px; letter-spacing: .5px; }
+    p.desc { font-size: 13px; color: #9ca3af; line-height: 1.9; margin-bottom: 22px; }
+    .status {
+      display: inline-flex; align-items: center; gap: 9px;
+      padding: 9px 20px; border-radius: 999px; font-size: 13px;
+      background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12);
+      margin-bottom: 28px;
+    }
+    .dot { width: 9px; height: 9px; border-radius: 50%; background: #8b93ab; flex: none; }
+    .dot.on { background: #34d399; box-shadow: 0 0 8px rgba(52,211,153,.7); animation: pulse 2s ease-in-out infinite; }
+    .dot.detected { background: #fbbf24; box-shadow: 0 0 8px rgba(251,191,36,.6); }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
+    .btn {
+      display: inline-block; padding: 11px 32px; border-radius: 12px; border: none;
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      color: #fff; font-size: 14px; cursor: pointer; letter-spacing: .5px;
+      box-shadow: 0 6px 18px rgba(37,99,235,.35);
+      transition: transform .12s, box-shadow .12s;
+    }
+    .btn:hover { transform: translateY(-1px); box-shadow: 0 8px 22px rgba(37,99,235,.45); }
+    .btn:active { transform: scale(.97); }
+    .tips { margin-top: 22px; font-size: 12px; color: #6b7280; line-height: 2; }
+    /* 自定义标题栏（无边框窗口） */
+    .tb {
+      position: fixed; top: 0; left: 0; right: 0; height: 38px; z-index: 99;
+      display: flex; align-items: center; justify-content: flex-end;
+      background: rgba(15,18,32,.7);
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      -webkit-app-region: drag; user-select: none;
+    }
+    .tb .tb-btn {
+      -webkit-app-region: no-drag;
+      width: 46px; height: 100%; border: 0; background: transparent;
+      color: #9aa2b8; font-size: 13px; cursor: pointer; outline: 0;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .12s, color .12s;
+    }
+    .tb .tb-btn:hover { background: rgba(255,255,255,.10); color: #e6e9f2; }
+    .tb .tb-close:hover { background: #e5484d; color: #fff; }
+  </style>
+</head>
+<body>
+  <div class="tb">
+    <button class="tb-btn" data-act="minimize" title="最小化">&#x2013;</button>
+    <button class="tb-btn" data-act="maximize" title="最大化">&#x25A1;</button>
+    <button class="tb-btn tb-close" data-act="close" title="关闭">&#x2715;</button>
+  </div>
+  <div class="card">
+    <div class="logo">
+      <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="6" y="12" width="36" height="24" rx="3" stroke="#6e8cff" stroke-width="2.4"/>
+        <path d="M6 18h36" stroke="#6e8cff" stroke-width="2.4"/>
+        <path d="M12 24h3M19 24h3M26 24h3M33 24h3M12 29h3M19 29h3M26 29h3M33 29h3" stroke="#8fa3e8" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <h1>无法连接 SKN 驱动服务器</h1>
+    <p class="desc">SKN 键盘驱动需要访问官方服务器才能加载完整功能（键位、灯效、宏、固件等）。<br>请检查网络连接后重试。</p>
+    <div class="status"><span class="dot" id="dot"></span><span id="statusText">正在检测键盘…</span></div>
+    <br>
+    <button class="btn" id="retry">重新加载驱动</button>
+    <div class="tips">
+      提示：键盘需通过 USB 线或 2.4G 接收器连接电脑。<br>
+      即使离线，驱动也会持续检测键盘连接状态。
+    </div>
+  </div>
+  <script>
+    (function () {
+      var dot = document.getElementById('dot');
+      var text = document.getElementById('statusText');
+      function render(s) {
+        if (!s) return;
+        var names = (s.names || []).filter(Boolean);
+        if (s.state === 'connected' || (s.connected && s.state !== 'detected')) {
+          dot.className = 'dot on';
+          text.textContent = '键盘已连接' + (names.length ? '：' + names.join('、') : '');
+        } else if (s.state === 'detected' || (s.devices && s.devices.length)) {
+          dot.className = 'dot detected';
+          text.textContent = '已检测到键盘，请联网后点击 Connect';
+        } else {
+          dot.className = 'dot';
+          text.textContent = '未检测到键盘';
+        }
+      }
+      document.getElementById('retry').addEventListener('click', function () {
+        window.location.href = 'https://launcher.skn.net.cn/';
+      });
+      var btns = document.querySelectorAll('.tb .tb-btn');
+      btns.forEach(function (b) {
+        b.addEventListener('click', function () {
+          if (window.sknDriver && window.sknDriver.windowControl) window.sknDriver.windowControl(b.getAttribute('data-act'));
+        });
+      });
+      if (window.sknDriver && window.sknDriver.onMaximized) {
+        window.sknDriver.onMaximized(function (m) {
+          var b = document.querySelector('.tb-btn[data-act="maximize"]');
+          if (b) b.innerHTML = m ? '&#x274F;' : '&#x25A1;';
+        });
+      }
+      if (window.sknDriver) {
+        window.sknDriver.getDeviceStatus().then(render);
+        window.sknDriver.onDeviceStatus(render);
+      }
+    })();
+  </script>
+</body>
+</html>
